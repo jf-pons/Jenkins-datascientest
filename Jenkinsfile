@@ -8,33 +8,35 @@ pipeline {
     stages {
         stage('Building') {
             steps {
-                sh 'pip install -r requirements.txt'
+                sh 'pip3 install -r requirements.txt'
             }
         }
         stage('Testing') {
             steps{
-                sh 'python -m unittest'
+                sh 'python3 -m unittest'
             }
         }
         stage('Deploying') {
             steps{
                 script {
                     sh '''
-                    # docker rm -f jenkins
+                    docker rm -f jenkins
                     docker build -t $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG .
                     docker run -d -p 8000:8000 --name jenkins $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG
                     '''
                 }
             }
         }
-        stage('User Acceptance') {
-          steps{
-            input {
-              message "Proceed to push to main"
-              ok "Yes"
-            }    
-          }
-        }
+        // stage('User Acceptance') {
+        //   steps{
+        //     steps{
+        //         input {
+        //             message "Proceed to push to main"
+        //             ok "Yes"
+        //         }    
+        //     }
+        //   }
+        // }
         stage('Pushing and Merging'){
             parallel {
                 stage('Pushing Image') {
