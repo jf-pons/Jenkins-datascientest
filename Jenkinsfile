@@ -8,12 +8,16 @@ pipeline {
     stages {
         stage('Building') {
             steps {
-                sh 'pip3 install -r requirements.txt'
+                sh '''
+                virtualenv env
+                . ./env/bin/activate
+                pip install -r requirements.txt
+                '''
             }
         }
         stage('Testing') {
             steps{
-                sh 'python3 -m unittest'
+                sh 'python -m unittest'
             }
         }
         stage('Deploying') {
