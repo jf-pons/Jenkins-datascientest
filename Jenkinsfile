@@ -8,11 +8,7 @@ pipeline {
     stages {
         stage('Building') {
             steps {
-                sh '''
-                virtualenv env
-                . ./env/bin/activate
-                pip install -r requirements.txt
-                '''
+                sh 'pip install -r requirements.txt'
             }
         }
         stage('Testing') {
