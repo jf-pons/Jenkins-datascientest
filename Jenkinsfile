@@ -3,9 +3,14 @@ pipeline {
     environment { 
         DOCKER_ID = "jeffpons"
         DOCKER_IMAGE = "datascientestapi"
-        DOCKER_TAG = "v.${BUILD_ID}.0" 
+        DOCKER_TAG = "v0.${BUILD_ID}.0" 
     }
     stages {
+        stage('Hello') {
+            steps {
+                sh 'echo "Hello"'
+            }
+        }
         stage('Building') {
             steps {
                 sh 'pip3 install --break-system-packages -r requirements.txt'
@@ -20,32 +25,27 @@ pipeline {
             steps{
                 script {
                     sh '''
-                    docker rm -f jenkins
+                    docker rm -f jenkins-api
                     docker build -t $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG .
-                    docker run -d -p 8000:8000 --name jenkins $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG
+                    docker run -d -p 8081:5000 --name jenkins-api $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG
                     '''
                 }
             }
         }
-        // stage('User Acceptance') {
-        //   steps{
-        //     steps{
-        //         input {
-        //             message "Proceed to push to main"
-        //             ok "Yes"
-        //         }    
-        //     }
-        //   }
-        // }
+        stage('User Acceptance') {
+          steps{
+            input message: "Proceed to push to main", ok: "Yes"
+          }
+        }
         stage('Pushing and Merging'){
             parallel {
                 stage('Pushing Image') {
                   environment {
-                      DOCKERHUB_CREDENTIALS = credentials('docker_jenkins')
+                      DOCKERHUB_CREDENTIALS = credentials('DOCKER_HUB_PASS')
                   }
                   steps {
-                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
-                      sh 'docker push $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG'
+                    sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                    sh 'docker push $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG'
                   }
                 }
             stage('Merging') {
